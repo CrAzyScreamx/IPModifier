@@ -10,7 +10,8 @@ class IPEntry(tk.Frame):
                           background="white")
         self.parent = parent
         vcmd = (parent.register(self.validate), '%S', '%s', '%d')
-        self._entries = []
+        self._entries = list()
+        self._currentEntry = 0
         self.width = width
         self._ipHistory = ipHistory
         self.countIps = 0
@@ -18,11 +19,14 @@ class IPEntry(tk.Frame):
             entry = tk.Entry(self, width=width, borderwidth=0,
                              justify="center", fg='black',
                              highlightthickness=0, background="white",
-                             validate='key', validatecommand=vcmd)
+                             validate='all', validatecommand=vcmd)
             entry.pack(side="left")
             if not ipHistory is None:
                 entry.bind("<Up>", lambda event: self.key_pressed(event, 1))
                 entry.bind("<Down>", lambda event: self.key_pressed(event, -1))
+            entry.bind("<Left>", lambda event: self.focusPrev(event))
+            entry.bind("<Right>", lambda event: self.focusNext(event))
+            entry.bind("<FocusIn>", lambda event: self.getFocused(event))
             self._entries.append(entry)
             if i < 3:
                 dot = tk.Label(self, text=".", background="white")
@@ -73,6 +77,22 @@ class IPEntry(tk.Frame):
                 ent.delete(0, "end")
                 ent.insert(0, ip[i])
             self.countIps += nextInList
+
+    def focusNext(self, event):
+        entry_length = len(event.widget.get())
+        cursor_position = event.widget.index(tk.INSERT)
+        if self._currentEntry < len(self._entries)-1 and entry_length == cursor_position:
+            self._currentEntry += 1
+            self._entries[self._currentEntry].focus()
+
+    def focusPrev(self, event):
+        cursor_position = event.widget.index(tk.INSERT)
+        if self._currentEntry > 0 and cursor_position == 0:
+            self._currentEntry -= 1
+            self._entries[self._currentEntry].focus()
+
+    def getFocused(self, event):
+        self._currentEntry = self._entries.index(event.widget)
 
 
 def is_Integer(val):
