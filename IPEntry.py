@@ -1,5 +1,6 @@
 import tkinter as tk
 import win32com.client as comclt
+import pyautogui
 
 wsh = comclt.Dispatch("WScript.shell")
 
@@ -26,6 +27,7 @@ class IPEntry(tk.Frame):
                 entry.bind("<Down>", lambda event: self.key_pressed(event, -1))
             entry.bind("<Left>", lambda event: self.focusPrev(event))
             entry.bind("<Right>", lambda event: self.focusNext(event))
+            entry.bind("<.>", lambda event: self.moveDot(event))
             entry.bind("<FocusIn>", lambda event: self.getFocused(event))
             self._entries.append(entry)
             if i < 3:
@@ -56,11 +58,13 @@ class IPEntry(tk.Frame):
             self.parent.bell()
             return False
         nowLetter = int(str(s) + str(S))
-        if (len(s) == 1 and int(d) == 0) \
+        if (len(s) == 1 and int(d) == 1) \
                 or (is_Integer(S) and
                     nowLetter < 256 and
                     len(s) < 3) \
                 or int(d) != 1:
+            if len(s) == 2 and int(d) != 0:
+                pyautogui.press(".")
             return True
         self.parent.bell()
         return False
@@ -93,6 +97,11 @@ class IPEntry(tk.Frame):
 
     def getFocused(self, event):
         self._currentEntry = self._entries.index(event.widget)
+
+
+    def moveDot(self, event):
+        if len(event.widget.get()) > 0:
+            self.focusNext(event)
 
 
 def is_Integer(val):
